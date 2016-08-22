@@ -1,0 +1,292 @@
+<form>
+  <label>Splunk Sizing</label>
+  <search id="baseSearch">
+    <query>| makeresults | eval daily_ingest = $daily_ingest$, compression = $compression$, metadata = $metadata$, days_hot = $days_hot$, days_cold = $days_cold$, days_archive = $days_archive$, indexers = $indexers$
+| eval storage_hot = (( daily_ingest * compression ) + ( daily_ingest * metadata )) * days_hot
+| eval storage_cold = (( daily_ingest * compression ) + ( daily_ingest * metadata )) * days_cold
+| eval storage_archive = ( daily_ingest * compression ) * days_archive
+| eval storage_total = storage_hot + storage_cold + storage_archive
+| eval per_indexer_hot = (storage_hot) / indexers
+| eval per_indexer_cold = (storage_cold) / indexers
+| eval per_indexer_archive = (storage_archive) / indexers
+| eval per_indexer_total = (per_indexer_hot + per_indexer_cold + per_indexer_archive) / indexers
+| eval total_storage_days = days_hot + days_cold + days_archive
+| eval total_storage_months = ( days_hot + days_cold + days_archive ) / 30
+| eval total_storage_years = ( days_hot + days_cold + days_archive ) / 365</query>
+  </search>
+  <row>
+    <panel>
+      <input type="text" token="daily_ingest" searchWhenChanged="true">
+        <default>100</default>
+      </input>
+      <input type="text" token="compression" searchWhenChanged="true">
+        <default>.15</default>
+      </input>
+      <input type="text" token="metadata" searchWhenChanged="true">
+        <default>.35</default>
+      </input>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <input type="text" token="days_hot" searchWhenChanged="true">
+        <default>7</default>
+      </input>
+      <input type="text" token="days_cold" searchWhenChanged="true">
+        <default>83</default>
+      </input>
+      <input type="text" token="days_archive" searchWhenChanged="true">
+        <default>0</default>
+      </input>
+      <input type="text" token="indexers" searchWhenChanged="true">
+        <default>1</default>
+      </input>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <single>
+        <search base="baseSearch">
+          <query>stats latest(total_storage_days) AS total_storage_days</query>
+        </search>
+        <option name="drilldown">none</option>
+        <option name="colorBy">value</option>
+        <option name="colorMode">none</option>
+        <option name="numberPrecision">0</option>
+        <option name="rangeColors">["0x65a637","0x6db7c6","0xf7bc38","0xf58f39","0xd93f3c"]</option>
+        <option name="rangeValues">[0,30,70,100]</option>
+        <option name="showSparkline">1</option>
+        <option name="showTrendIndicator">1</option>
+        <option name="trendColorInterpretation">standard</option>
+        <option name="trendDisplayMode">absolute</option>
+        <option name="unitPosition">after</option>
+        <option name="useColors">0</option>
+        <option name="useThousandSeparators">1</option>
+        <option name="linkView">search</option>
+        <option name="unit">Days</option>
+      </single>
+    </panel>
+    <panel>
+      <single>
+        <search base="baseSearch">
+          <query>stats latest(total_storage_months) AS total_storage_months</query>
+        </search>
+        <option name="drilldown">none</option>
+        <option name="colorBy">value</option>
+        <option name="colorMode">none</option>
+        <option name="numberPrecision">0</option>
+        <option name="rangeColors">["0x65a637","0x6db7c6","0xf7bc38","0xf58f39","0xd93f3c"]</option>
+        <option name="rangeValues">[0,30,70,100]</option>
+        <option name="showSparkline">1</option>
+        <option name="showTrendIndicator">1</option>
+        <option name="trendColorInterpretation">standard</option>
+        <option name="trendDisplayMode">absolute</option>
+        <option name="unitPosition">after</option>
+        <option name="useColors">0</option>
+        <option name="useThousandSeparators">1</option>
+        <option name="linkView">search</option>
+        <option name="unit">Months</option>
+      </single>
+    </panel>
+    <panel>
+      <single>
+        <search base="baseSearch">
+          <query>stats latest(total_storage_years) AS total_storage_years</query>
+        </search>
+        <option name="drilldown">none</option>
+        <option name="colorBy">value</option>
+        <option name="colorMode">none</option>
+        <option name="numberPrecision">0.0</option>
+        <option name="rangeColors">["0x65a637","0x6db7c6","0xf7bc38","0xf58f39","0xd93f3c"]</option>
+        <option name="rangeValues">[0,30,70,100]</option>
+        <option name="showSparkline">1</option>
+        <option name="showTrendIndicator">1</option>
+        <option name="trendColorInterpretation">standard</option>
+        <option name="trendDisplayMode">absolute</option>
+        <option name="unitPosition">after</option>
+        <option name="useColors">0</option>
+        <option name="useThousandSeparators">1</option>
+        <option name="linkView">search</option>
+        <option name="unit">Years</option>
+      </single>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <title>Storage Requirements</title>
+      <single>
+        <title>Hot Storage</title>
+        <search base="baseSearch">
+          <query>stats latest(storage_hot) as storage_hot</query>
+        </search>
+        <option name="drilldown">none</option>
+        <option name="colorBy">value</option>
+        <option name="colorMode">none</option>
+        <option name="numberPrecision">0</option>
+        <option name="showSparkline">1</option>
+        <option name="showTrendIndicator">1</option>
+        <option name="trendColorInterpretation">standard</option>
+        <option name="trendDisplayMode">absolute</option>
+        <option name="unitPosition">after</option>
+        <option name="useColors">0</option>
+        <option name="useThousandSeparators">1</option>
+        <option name="linkView">search</option>
+        <option name="rangeColors">["0x65a637","0x6db7c6","0xf7bc38","0xf58f39","0xd93f3c"]</option>
+        <option name="rangeValues">[0,30,70,100]</option>
+        <option name="unit">GB</option>
+      </single>
+      <single>
+        <title>Cold Storage</title>
+        <search base="baseSearch">
+          <query>stats latest(storage_cold) as storage_cold</query>
+        </search>
+        <option name="drilldown">none</option>
+        <option name="colorBy">value</option>
+        <option name="colorMode">none</option>
+        <option name="numberPrecision">0</option>
+        <option name="showSparkline">1</option>
+        <option name="showTrendIndicator">1</option>
+        <option name="trendColorInterpretation">standard</option>
+        <option name="trendDisplayMode">absolute</option>
+        <option name="unitPosition">after</option>
+        <option name="useColors">0</option>
+        <option name="useThousandSeparators">1</option>
+        <option name="linkView">search</option>
+        <option name="rangeColors">["0x65a637","0x6db7c6","0xf7bc38","0xf58f39","0xd93f3c"]</option>
+        <option name="rangeValues">[0,30,70,100]</option>
+        <option name="unit">GB</option>
+      </single>
+      <single>
+        <title>Archive Storage</title>
+        <search base="baseSearch">
+          <query>stats latest(storage_archive) as storage_archive</query>
+        </search>
+        <option name="drilldown">none</option>
+        <option name="colorBy">value</option>
+        <option name="colorMode">none</option>
+        <option name="numberPrecision">0</option>
+        <option name="showSparkline">1</option>
+        <option name="showTrendIndicator">1</option>
+        <option name="trendColorInterpretation">standard</option>
+        <option name="trendDisplayMode">absolute</option>
+        <option name="unitPosition">after</option>
+        <option name="useColors">0</option>
+        <option name="useThousandSeparators">1</option>
+        <option name="linkView">search</option>
+        <option name="rangeColors">["0x65a637","0x6db7c6","0xf7bc38","0xf58f39","0xd93f3c"]</option>
+        <option name="rangeValues">[0,30,70,100]</option>
+        <option name="unit">GB</option>
+      </single>
+      <single>
+        <title>Total Storage</title>
+        <search base="baseSearch">
+          <query>stats latest(storage_total) as storage_total</query>
+        </search>
+        <option name="drilldown">none</option>
+        <option name="colorBy">value</option>
+        <option name="colorMode">none</option>
+        <option name="numberPrecision">0</option>
+        <option name="showSparkline">1</option>
+        <option name="showTrendIndicator">1</option>
+        <option name="trendColorInterpretation">standard</option>
+        <option name="trendDisplayMode">absolute</option>
+        <option name="unitPosition">after</option>
+        <option name="useColors">0</option>
+        <option name="useThousandSeparators">1</option>
+        <option name="linkView">search</option>
+        <option name="rangeColors">["0x65a637","0x6db7c6","0xf7bc38","0xf58f39","0xd93f3c"]</option>
+        <option name="rangeValues">[0,30,70,100]</option>
+        <option name="unit">GB</option>
+      </single>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <title>Per Indexer Storage Requirements</title>
+      <single>
+        <title>Hot Storage</title>
+        <search base="baseSearch">
+          <query>stats latest(per_indexer_hot) as per_indexer_</query>
+        </search>
+        <option name="drilldown">none</option>
+        <option name="colorBy">value</option>
+        <option name="colorMode">none</option>
+        <option name="numberPrecision">0</option>
+        <option name="showSparkline">1</option>
+        <option name="showTrendIndicator">1</option>
+        <option name="trendColorInterpretation">standard</option>
+        <option name="trendDisplayMode">absolute</option>
+        <option name="unitPosition">after</option>
+        <option name="useColors">0</option>
+        <option name="useThousandSeparators">1</option>
+        <option name="linkView">search</option>
+        <option name="rangeColors">["0x65a637","0x6db7c6","0xf7bc38","0xf58f39","0xd93f3c"]</option>
+        <option name="rangeValues">[0,30,70,100]</option>
+        <option name="unit">GB</option>
+      </single>
+      <single>
+        <title>Per Indexer Cold Storage</title>
+        <search base="baseSearch">
+          <query>stats latest(per_indexer_cold) as per_indexer_cold</query>
+        </search>
+        <option name="drilldown">none</option>
+        <option name="colorBy">value</option>
+        <option name="colorMode">none</option>
+        <option name="numberPrecision">0</option>
+        <option name="showSparkline">1</option>
+        <option name="showTrendIndicator">1</option>
+        <option name="trendColorInterpretation">standard</option>
+        <option name="trendDisplayMode">absolute</option>
+        <option name="unitPosition">after</option>
+        <option name="useColors">0</option>
+        <option name="useThousandSeparators">1</option>
+        <option name="linkView">search</option>
+        <option name="rangeColors">["0x65a637","0x6db7c6","0xf7bc38","0xf58f39","0xd93f3c"]</option>
+        <option name="rangeValues">[0,30,70,100]</option>
+        <option name="unit">GB</option>
+      </single>
+      <single>
+        <title>Per Indexer Archive Storage</title>
+        <search base="baseSearch">
+          <query>stats latest(per_indexer_archive) as per_indexer_archive</query>
+        </search>
+        <option name="drilldown">none</option>
+        <option name="colorBy">value</option>
+        <option name="colorMode">none</option>
+        <option name="numberPrecision">0</option>
+        <option name="showSparkline">1</option>
+        <option name="showTrendIndicator">1</option>
+        <option name="trendColorInterpretation">standard</option>
+        <option name="trendDisplayMode">absolute</option>
+        <option name="unitPosition">after</option>
+        <option name="useColors">0</option>
+        <option name="useThousandSeparators">1</option>
+        <option name="linkView">search</option>
+        <option name="rangeColors">["0x65a637","0x6db7c6","0xf7bc38","0xf58f39","0xd93f3c"]</option>
+        <option name="rangeValues">[0,30,70,100]</option>
+        <option name="unit">GB</option>
+      </single>
+      <single>
+        <title>Per Indexer Total Storage</title>
+        <search base="baseSearch">
+          <query>stats latest(per_indexer_total) as per_indexer_total</query>
+        </search>
+        <option name="drilldown">none</option>
+        <option name="colorBy">value</option>
+        <option name="colorMode">none</option>
+        <option name="numberPrecision">0</option>
+        <option name="showSparkline">1</option>
+        <option name="showTrendIndicator">1</option>
+        <option name="trendColorInterpretation">standard</option>
+        <option name="trendDisplayMode">absolute</option>
+        <option name="unitPosition">after</option>
+        <option name="useColors">0</option>
+        <option name="useThousandSeparators">1</option>
+        <option name="linkView">search</option>
+        <option name="rangeColors">["0x65a637","0x6db7c6","0xf7bc38","0xf58f39","0xd93f3c"]</option>
+        <option name="rangeValues">[0,30,70,100]</option>
+        <option name="unit">GB</option>
+      </single>
+    </panel>
+  </row>
+</form>
